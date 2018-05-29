@@ -1,0 +1,5 @@
+.DS_Store
+.idea/
+__pycach*
+datasets/.DS_Store
+laska.png
