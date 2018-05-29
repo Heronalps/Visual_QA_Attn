@@ -9,6 +9,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import re
+import json
 
 NEG_CONTRACTIONS = [
     (r'aren\'t', 'are not'),
@@ -59,12 +60,39 @@ def tokenizing_sentence(line):
 
 
 class Vocabulary(object):
-    def __init__(self, words, word2idx):
-        self.words = words
-        self.word2idx = word2idx
+    def __init__(self):
+        print("Created Vocabulary Object")
         self.missingWords = 0
         nltk.download('stopwords')
         nltk.download('punkt')
+
+    def build(self,questions_json_file):
+        print("Building the indexes")
+        self.words = []
+        self.word2idx = {}
+        word_counts = {}
+        train_ques = json.load(open(questions_json_file, 'r'))
+        train_size = len(train_ques['questions'])
+
+        for i in tqdm(list(range(train_size)), desc='sentences'):
+            question = train_ques['questions'][i]['question']
+            for w in tokenizing_sentence(question.lower()):
+                word_counts[w] = word_counts.get(w, 0) + 1.0
+
+        word_counts = sorted(list(word_counts.items()),
+                             key=lambda x: x[1],
+                             reverse=True)
+
+        self.num_words = len(word_counts)
+
+        for idx in range(self.num_words):
+            word, word_count = word_counts[idx]
+            self.word2idx[word] = idx
+            self.words.append(word)
+
+
+        print("Total number of different words in question {}".format(len(word_counts)))
+
 
     def process_sentence(self, sentence):
         """ Tokenize a sentence, and translate each token into its index

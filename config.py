@@ -24,8 +24,8 @@ class Config(object):
 
         ## RNN PARAMETERS
         self.MAX_QUESTION_LENGTH = 25
-        self.EMBEDDING_DIMENSION = 100
-        self.VOCAB_SIZE = 400000
+        self.EMBEDDING_DIMENSION = 512
+        self.VOCAB_SIZE = 13764
 
 
 
@@ -47,7 +47,7 @@ class Config(object):
         self.SAVE_DIR = './models/'
         self.SAVE_PERIOD = 370000/(self.BATCH_SIZE*4)
         self.LOAD_MODEL = False
-        self.MODEL_FILE_NAME= self.SAVE_DIR + '/epoch_1.npy'
+        self.MODEL_FILE_NAME= self.SAVE_DIR + '/step_722.npy'
         self.EPOCH_COUNT = 0
 
 

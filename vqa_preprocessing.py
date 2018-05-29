@@ -122,7 +122,7 @@ def get_top_answers(config):
     return top_answers
 
 
-def prepare_train_data(config,words,word2idx):
+def prepare_train_data(config,vocabulary):
     """ Prepare the data for training the model. """
     print("Preparing Training Data....")
     top_answers = get_top_answers(config)
@@ -133,7 +133,7 @@ def prepare_train_data(config,words,word2idx):
     train_ques = json.load(open(config.DATA_DIR + config.TRAIN_QUESTIONS_FILE, 'r'))
 
     train_size = len(train_annot['annotations'])
-    vocabulary = Vocabulary(words,word2idx)
+
 
     ## Lists that need to be passed to DataSet object
     image_id_list = [] ; image_file_list = []

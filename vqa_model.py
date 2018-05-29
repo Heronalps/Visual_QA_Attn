@@ -34,11 +34,14 @@ class vqa_model:
             dtype=tf.int32,
             shape=[self.config.BATCH_SIZE] + [self.config.MAX_QUESTION_LENGTH])
 
+        ## Initialise the embedding matrix
 
-        self.embedding_matrix_placeholder = tf.placeholder(tf.float32, shape=[self.config.VOCAB_SIZE, self.config.EMBEDDING_DIMENSION])
-
-        self.embedding_matrix = tf.Variable(tf.constant(0.0, shape=[self.config.VOCAB_SIZE, self.config.EMBEDDING_DIMENSION]),
-                        trainable=False, name="embedding_matrix")
+        self.embedding_matrix = tf.get_variable(
+            name='weights',
+            shape=[self.config.VOCAB_SIZE, self.config.EMBEDDING_DIMENSION],
+            initializer=self.encoder.cnn.nn.fc_kernel_initializer,
+            regularizer=self.encoder.cnn.nn.fc_kernel_regularizer,
+            trainable=self.config.PHASE)
 
         ## pass the images, questions and embedding matrix to the encoder
         self.encoder.build(self.images,self.questions,self.question_masks, self.embedding_matrix)
@@ -51,13 +54,9 @@ class vqa_model:
         ## Assign variables that needs to be passed to variables from encoder and decoder
         pass
 
-    def train(self,sess,train_data,embedding_matrix_glove):
+    def train(self,sess,train_data):
         print("Training the model")
 
-        ## Assign embedding matrix to the variable in session
-        self.embedding_init = self.embedding_matrix.assign(self.embedding_matrix_placeholder)
-
-        sess.run(self.embedding_init, feed_dict={self.embedding_matrix_placeholder: embedding_matrix_glove})
         epoch_count = self.config.EPOCH_COUNT
 
 
@@ -89,6 +88,7 @@ class vqa_model:
             print("Total Predictions correct : {0} at epoch {1}".format(total_predictions_correct,epoch_count))
             ## Save after all epochs
             self.save("epoch_"+str(epoch_count))
+            train_data.reset()
 
 
 
