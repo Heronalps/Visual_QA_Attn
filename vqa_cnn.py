@@ -378,12 +378,13 @@ class vqa_cnn():
 
         # self.conv_feats = self.fc2
         ## Reshaping the 4096 to fit the lstm size
-        reshaped_fc2_feats = tf.reshape(self.fc2,
-                                        [config.BATCH_SIZE, 2, 2048])
-
+        # reshaped_fc2_feats = tf.reshape(self.fc2,
+        #                                 [config.BATCH_SIZE, 2, 2048])
+        reshaped_fc2_feats = self.conv5_3
         self.conv_feats = tf.reduce_mean(reshaped_fc2_feats, axis=1)
-        self.num_ctx = 1
-        self.dim_ctx = 2048
+
+        self.num_ctx = 14
+        self.dim_ctx = 512
         self.images = images
 
     def build_resnet50(self,images):

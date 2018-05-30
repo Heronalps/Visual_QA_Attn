@@ -17,7 +17,7 @@ class vqa_model:
         self.config = config
         self.encoder = vqa_encoder(self.config)
         self.decoder = vqa_decoder(self.config)
-        self.image_loader = ImageLoader('./ilsvrc_2012_mean.npy')
+        self.image_loader = ImageLoader('./ilsvrc_2012_mean.npy',self.config)
         self.global_step = 0
 
     def build(self):
@@ -41,14 +41,14 @@ class vqa_model:
             shape=[self.config.VOCAB_SIZE, self.config.EMBEDDING_DIMENSION],
             initializer=self.encoder.cnn.nn.fc_kernel_initializer,
             regularizer=self.encoder.cnn.nn.fc_kernel_regularizer,
-            trainable=self.config.PHASE)
+            trainable=True)
 
         ## pass the images, questions and embedding matrix to the encoder
         self.encoder.build(self.images,self.questions,self.question_masks, self.embedding_matrix)
-        ## pass the outputs of encoder to decoder model
-        self.decoder.build(self.encoder.cnn_features,self.encoder.lstm_features)
-
-        self.build_model()
+        # ## pass the outputs of encoder to decoder model
+        # self.decoder.build(self.encoder.cnn_features,self.encoder.lstm_features)
+        #
+        # self.build_model()
 
     def build_model(self):
         ## Assign variables that needs to be passed to variables from encoder and decoder
@@ -80,14 +80,21 @@ class vqa_model:
                 self.global_step += 1
                 total_predictions_correct += predictions_correct
 
+
                 if(self.global_step % int(self.config.SAVE_PERIOD) == 0):
                     self.save("step_"+ str(self.global_step))
                     print("Total Predictions correct : {0} at time step {1}".format(total_predictions_correct,self.global_step))
+                    f = open("results.txt", "a")
+                    f.write("Total Predictions correct : {0} at time step {1} \n".format(total_predictions_correct,self.global_step))
+                    f.close()
 
             epoch_count += 1
-            print("Total Predictions correct : {0} at epoch {1}".format(total_predictions_correct,epoch_count))
+            print("Total Predictions correct : {0} at epoch {1} \n".format(total_predictions_correct,epoch_count))
             ## Save after all epochs
             self.save("epoch_"+str(epoch_count))
+            f = open("results.txt", "a")
+            f.write("Total Predictions correct : {0} at epoch {1} \n".format(total_predictions_correct, epoch_count))
+            f.close()
             train_data.reset()
 
 

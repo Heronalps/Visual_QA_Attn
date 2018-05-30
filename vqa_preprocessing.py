@@ -19,10 +19,11 @@ from vqa_dataset import DataSet
 import cv2
 
 class ImageLoader(object):
-    def __init__(self, mean_file):
+    def __init__(self, mean_file,config):
         self.bgr = True
-        self.scale_shape = np.array([224, 224], np.int32)
-        self.crop_shape = np.array([224, 224], np.int32)
+        self.config = config
+        self.scale_shape = np.array(config.IMAGE_DIMENSION, np.int32)
+        self.crop_shape = np.array(config.IMAGE_DIMENSION, np.int32)
         self.mean = np.load(mean_file).mean(1).mean(1)
 
     def load_image(self, image_file):

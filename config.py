@@ -17,7 +17,9 @@ class Config(object):
         self.TRAIN_CNN = False
         self.CNN='vgg16'
         self.CNN_PRETRAINED_FILE = self.DATA_DIR +'./vgg16_weights.npz'
-        self.IMAGE_SHAPE = [224, 224, 3]
+        self.IMAGE_DIMENSION = [224,224]
+        self.IMAGE_SHAPE = self.IMAGE_DIMENSION + [3]
+        self.IMAGE_FEATURES = 14
 
         # self.CNN = 'resnet50'
         # self.CNN_PRETRAINED_FILE = './resnet50_no_fc.npy'
@@ -40,6 +42,8 @@ class Config(object):
         ## Model Parameters
         self.PHASE = 'train'
         self.POINT_WISE_FEATURES = 1024
+        self.INTERMEDIATE_DIMENSION = 30
+
         self.BATCH_SIZE = 128
         self.INITIAL_LEARNING_RATE = 1e-4
         self.NUM_EPOCHS = 5
