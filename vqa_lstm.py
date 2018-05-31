@@ -11,6 +11,7 @@ class vqa_lstm(object):
         self.output_size = config.LSTM_OUTPUT_SIZE
         self.cell_size = config.LSTM_CELL_SIZE
         self.batch_size = config.LSTM_BATCH_SIZE
+        self.drop_rate = config.LSTM_DROP_RATE
         self.lstm_layer = 2
         self.dim = self.lstm_layer * 1024
 
@@ -36,3 +37,54 @@ class vqa_lstm(object):
         self.lstm_features = tf.concat([self.cell_final_state[0][0], self.cell_final_state[0][1],self.cell_final_state[1][0], self.cell_final_state[1][1]], 1)
         print("LSTM Concat Feature size {}".format(self.lstm_features.get_shape()))
 
+    ## Return self.lstm_features
+
+    def build_rnn(self, question_idxs, questions_mask, embedding_matrix, sentences):
+        """ Build the RNN. """
+        print("Building the RNN...")
+
+        # Setup the LSTM
+        lstm_cell_1 = tf.contrib.rnn.BasicLSTMCell(
+            self.cell_size,
+            state_is_tuple = True)
+        lstm_cell_1 = tf.contrib.rnn.DropoutWrapper(
+            lstm_cell_1,
+            input_keep_prob=1.0 - self.drop_rate,
+            output_keep_prob=1.0 - self.drop_rate,
+            state_keep_prob=1.0 - self.drop_rate)
+
+        # lstm_cell_2 = tf.contrib.rnn.BasicLSTMCell(
+        #     self.cell_size,
+        #     state_is_tuple=True)
+
+
+        # Initialize the LSTM using the mean context
+        with tf.variable_scope("initialize"):
+            initial_memory = tf.zeros([self.batch_size, lstm_cell_1.state_size[0]])
+            initial_output = tf.zeros([self.batch_size, lstm_cell_1.state_size[1]])
+
+        ## Initial memory and output are given zeros
+        last_memory = initial_memory
+        last_output = initial_output
+        last_state = last_memory, last_output
+
+        lstm_feature_arr = []
+
+        # Generate the words one by one
+        for idx in range(self.n_steps):
+
+            # Apply the LSTM
+            with tf.variable_scope("lstm"):
+                current_input = sentences[:, idx]
+                output, state = lstm_cell_1(current_input, last_state)
+                memory, hidden_state = state
+
+            last_state = state
+
+            lstm_feature_arr.append(hidden_state)
+
+            tf.get_variable_scope().reuse_variables()
+
+        self.lstm_features = tf.stack(lstm_feature_arr, axis=1)
+
+        print("RNN built.")
