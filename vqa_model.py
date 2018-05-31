@@ -46,7 +46,9 @@ class vqa_model:
         ## pass the images, questions and embedding matrix to the encoder
         self.encoder.build(self.images,self.questions,self.question_masks, self.embedding_matrix)
         # ## pass the outputs of encoder to decoder model
-        # self.decoder.build(self.encoder.cnn_features,self.encoder.lstm_features)
+        self.decoder.build(self.encoder.v_attend_word,self.encoder.q_attend_word,
+                           self.encoder.v_attend_phrase,self.encoder.q_attend_phrase,
+                           self.encoder.v_attend_sentence,self.encoder.q_attend_sentence)
         #
         # self.build_model()
 
@@ -75,6 +77,11 @@ class vqa_model:
                              self.decoder.answer_masks:answer_masks}
 
                 _,predictions_correct = sess.run([self.decoder.optimizer,self.decoder.predictions_correct],feed_dict=feed_dict)
+
+                # _ = sess.run(self.encoder.v_attend_phrase,
+                #                               feed_dict=feed_dict)
+                #
+                # predictions_correct = 0
 
                 ## Global step count in order to store the model between batches
                 self.global_step += 1
