@@ -106,25 +106,27 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         if config.PHASE == 'train':
-            ## Create Vocabulary object
-            vocabulary = Vocabulary()
-            ## Build the vocabulary to get the indexes
-            vocabulary.build(config.DATA_DIR+config.TRAIN_QUESTIONS_FILE)
-            config.VOCAB_SIZE = vocabulary.num_words
-            ## Create the data set
-            data_set = prepare_train_data(config,vocabulary)
-            # Create the model object
+            # ## Create Vocabulary object
+            # vocabulary = Vocabulary()
+            # ## Build the vocabulary to get the indexes
+            # vocabulary.build(config.DATA_DIR+config.TRAIN_QUESTIONS_FILE)
+            # config.VOCAB_SIZE = vocabulary.num_words
+            # ## Create the data set
+            # data_set = prepare_train_data(config,vocabulary)
+            # # Create the model object
             model = vqa_model(config)
             # Build the model
             model.build()
-            sess.run(tf.global_variables_initializer())
-            if (config.LOAD_MODEL):
-                model.load(sess,config.MODEL_FILE_NAME)
-            # Train the data with the data set and embedding matrix
-            model.train(sess,data_set)
+            # sess.run(tf.global_variables_initializer())
+            #
+            # if (config.LOAD_MODEL):
+            #     model.load(sess,config.MODEL_FILE_NAME)
+            # # Train the data with the data set and embedding matrix
+            # model.train(sess,data_set)
 
 
         elif config.PHASE == 'test':
+            
             pass
 
 

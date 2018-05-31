@@ -8,6 +8,7 @@ Co-attention part is also taken care here
 import tensorflow as tf
 from vqa_cnn import *
 from vqa_word_level import *
+from vqa_phrase_level import *
 from vqa_lstm import *
 
 class vqa_encoder:
@@ -15,6 +16,7 @@ class vqa_encoder:
         self.config = config
         self.cnn = vqa_cnn(self.config)
         self.word_level = vqa_word_level(config)
+        self.phrase_level = vqa_phrase_level(config)
         ## LSTM code here
         self.lstm = vqa_lstm(self.config)
 
@@ -24,9 +26,12 @@ class vqa_encoder:
         ## Build the word level
         self.word_level.build(questions, question_masks, embedding_matrix)
         ## Build the Phrase level
-        ## Build the sentence level LSTM Model
-        self.lstm.build(questions, question_masks, embedding_matrix)
-        ## Combine the model
+
+        self.phrase_level.build(self.word_level.word_embed)
+        # ## Build the sentence level LSTM Model
+        # self.lstm.build(self.phrase_level.phrase_level_features,question_masks)
+        # ## Combine the model
+
         self.build_encoder()
 
 
@@ -50,13 +55,21 @@ class vqa_encoder:
         ## Call the parallel co-attention model on word , phrase and sentence level
         self.v_attend_word, self.q_attend_word = self.parallel_co_attention(self.V, self.Q_word, "word")
 
-        self.v_attend_phrase, self.q_attend_phrase = self.parallel_co_attention(self.V, self.Q_word, "phrase")
+        print("Phrase Level feature size {}".format(self.phrase_level.phrase_level_features.get_shape()))
+        self.Q_phrase = tf.transpose(self.phrase_level.phrase_level_features,[0,2,1])
+
+        self.v_attend_phrase, self.q_attend_phrase = self.parallel_co_attention(self.V, self.Q_phrase, "phrase")
+
+        self.Q_sentence = tf.transpose(self.phrase_level.phrase_level_features,[0,2,1])
+
+        self.v_attend_sentence, self.q_attend_sentence = self.parallel_co_attention(self.V,self.Q_sentence,"sentence")
 
 
 
 
     def parallel_co_attention(self,V,Q,name_scope="word"):
         config = self.config
+
         with tf.variable_scope(name_scope, reuse=tf.AUTO_REUSE) as scope:
             W_b = tf.get_variable(
                 initializer=tf.truncated_normal([config.EMBEDDING_DIMENSION, config.EMBEDDING_DIMENSION],
@@ -70,7 +83,7 @@ class vqa_encoder:
             print("Affinity_size_intermediate {0}: {1}".format(name_scope, C_intermediate.get_shape()))
 
             ## Multiplyint intermediate affinity with word level image features
-            C = tf.matmul(C_intermediate, V)  ## (C) [?,T,N]
+            C = tf.tanh(tf.matmul(C_intermediate, V))  ## (C) [?,T,N]
 
             print("Affinity_size {0} : {1}".format(name_scope, C.get_shape()))
 
@@ -97,10 +110,8 @@ class vqa_encoder:
                                           shape=[config.INTERMEDIATE_DIMENSION, config.MAX_QUESTION_LENGTH],
                                           name="W_q_Q"))
 
-            H_v = tf.tanh(
-                tf.add(W_v_V, tf.matmul(W_q_Q, C)))  ## [?,k,N]
-            H_q = tf.tanh(tf.add(W_q_Q, tf.matmul(W_v_V, tf.transpose(C,
-                                                                                               [0, 2, 1]))))  ## [?,k,T]
+            H_v = tf.tanh( tf.add(W_v_V, tf.matmul(W_q_Q, C)))  ## [?,k,N]
+            H_q = tf.tanh(tf.add(W_q_Q, tf.matmul(W_v_V, tf.transpose(C,[0, 2, 1]))))  ## [?,k,T]
 
             print("H_v shape {0}: {1}".format(name_scope, H_v.get_shape()))
             print("H_q shape {0}: {1}".format(name_scope, H_q.get_shape()))
@@ -114,13 +125,13 @@ class vqa_encoder:
                                               name='w_h_q', trainable=True)
 
             ## Attention weights
-            a_v = tf.scan(lambda a, x: tf.matmul(tf.transpose(w_h_v), x), H_v,
+            a_v = tf.nn.softmax(tf.scan(lambda a, x: tf.matmul(tf.transpose(w_h_v), x), H_v,
                                     initializer=tf.get_variable(shape=[1, config.IMAGE_FEATURES],
-                                                                name="a_v"))  ## [?,1,N]
+                                                                name="a_v")) ) ## [?,1,N]
 
-            a_q = tf.scan(lambda a, x: tf.matmul(tf.transpose(w_h_q), x), H_q,
+            a_q = tf.nn.softmax(tf.scan(lambda a, x: tf.matmul(tf.transpose(w_h_q), x), H_q,
                                     initializer=tf.get_variable(shape=[1, config.MAX_QUESTION_LENGTH],
-                                                                name="a_q"))  ## [?,1,T]
+                                                                name="a_q")))  ## [?,1,T]
 
             print("a_v shape {0} : {1}".format(name_scope,a_v.get_shape()))
             print("a_q shape {0}: {1}".format(name_scope,a_q.get_shape()))
@@ -130,6 +141,7 @@ class vqa_encoder:
             V_attend = tf.matmul(a_v, tf.transpose(V, [0, 2, 1]))
             Q_attend = tf.matmul(a_q, tf.transpose(Q, [0, 2, 1]))
 
+            ## Reshaped because it gives us a dimension [?,1,d]
             V_attend = tf.reshape(V_attend, [config.BATCH_SIZE, config.EMBEDDING_DIMENSION])
             Q_attend = tf.reshape(Q_attend, [config.BATCH_SIZE, config.EMBEDDING_DIMENSION])
 
