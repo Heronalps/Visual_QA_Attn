@@ -58,13 +58,16 @@ class vqa_encoder:
 
         self.v_attend_phrase, self.q_attend_phrase = self.parallel_co_attention(self.V, self.Q_phrase, "phrase")
 
-        self.v_attend_sentence, self.q_attend_sentence = self.parallel_co_attention(self.V,self.Q_phrase,"sentence")
+        self.Q_sentence = tf.transpose(self.phrase_level.phrase_level_features,[0,2,1])
+
+        self.v_attend_sentence, self.q_attend_sentence = self.parallel_co_attention(self.V,self.Q_sentence,"sentence")
 
 
 
 
     def parallel_co_attention(self,V,Q,name_scope="word"):
         config = self.config
+
         with tf.variable_scope(name_scope, reuse=tf.AUTO_REUSE) as scope:
             W_b = tf.get_variable(
                 initializer=tf.truncated_normal([config.EMBEDDING_DIMENSION, config.EMBEDDING_DIMENSION],

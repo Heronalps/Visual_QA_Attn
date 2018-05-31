@@ -40,18 +40,26 @@ class vqa_decoder:
             attend_weight_sentence = tf.get_variable(initializer=tf.truncated_normal([2*config.EMBEDDING_DIMENSION,config.EMBEDDING_DIMENSION],dtype=tf.float32,
                                                    stddev=1e-1),name='attend_weight_sentence', trainable=True)
 
+            attend_bias_word = tf.get_variable(initializer=tf.truncated_normal([config.EMBEDDING_DIMENSION],dtype=tf.float32,
+                                                stddev=1e-1), name='attend_bias_word', trainable=True)
+            attend_bias_phrase = tf.get_variable(initializer=tf.truncated_normal([config.EMBEDDING_DIMENSION],dtype=tf.float32,
+                                                stddev=1e-1), name='attend_bias_phrase', trainable=True)
+            attend_bias_sentence = tf.get_variable(initializer=tf.truncated_normal([ config.EMBEDDING_DIMENSION],dtype=tf.float32,
+                                                stddev=1e-1), name='attend_bias_sentence', trainable=True)
 
-        attend_vector_word = tf.tanh(tf.matmul(self.attend_image_word+self.attend_question_word,attend_weight_word))
+
+
+        attend_vector_word = tf.tanh(tf.matmul(self.attend_image_word+self.attend_question_word,attend_weight_word)+attend_bias_word)
         print("Attend Vector Word {}".format(attend_vector_word.get_shape()))
 
         temp_attend_phrase = self.attend_image_phrase+self.attend_question_phrase
         print("Temp Vector Phase {}".format(temp_attend_phrase.get_shape()))
 
-        attend_vector_phrase = tf.tanh(tf.matmul(tf.concat([attend_vector_word,temp_attend_phrase],axis = 1),attend_weight_phrase))
+        attend_vector_phrase = tf.tanh(tf.matmul(tf.concat([attend_vector_word,temp_attend_phrase],axis = 1),attend_weight_phrase) + attend_bias_phrase)
         print("Attend Vector Phrase {}".format(attend_vector_phrase.get_shape()))
 
         temp_attend_sentence = self.attend_image_sentence + self.attend_question_sentence
-        attend_vector_sentence = tf.tanh(tf.matmul(tf.concat([attend_vector_phrase,temp_attend_sentence],axis = 1),attend_weight_sentence))
+        attend_vector_sentence = tf.tanh(tf.matmul(tf.concat([attend_vector_phrase,temp_attend_sentence],axis = 1),attend_weight_sentence)+attend_bias_sentence)
         print("Attend Vector Sentence {}".format(attend_vector_sentence.get_shape()))
 
         ## Build a Fully Connected Layer

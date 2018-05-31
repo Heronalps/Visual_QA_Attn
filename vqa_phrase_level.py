@@ -6,7 +6,7 @@ class vqa_phrase_level:
 
     def build(self,word_embedding):
         config = self.config
-
+        ## Unigram
         kernel_unigram = tf.get_variable(initializer=tf.truncated_normal([1, config.EMBEDDING_DIMENSION, config.EMBEDDING_DIMENSION],
                                                                          dtype=tf.float32,stddev=1e-1), name='kernel_unigram',
                                         trainable=True)
@@ -18,7 +18,7 @@ class vqa_phrase_level:
         unigram_embedding = tf.nn.bias_add(unigram_conv, unigram_biases)
         print("Unigram shape {}".format(unigram_embedding.get_shape()))
 
-        ## Bigra,
+        ## Bigram
         kernel_bigram = tf.get_variable(initializer=tf.truncated_normal([2, config.EMBEDDING_DIMENSION, config.EMBEDDING_DIMENSION],
                                                                         dtype=tf.float32, stddev=1e-1), name='kernel_bigram',
                                         trainable=True)
@@ -44,7 +44,7 @@ class vqa_phrase_level:
         print("Trigram shape {}".format(trigram_embedding.get_shape()))
 
         ## Stacking the trigram
-        stacked_grams = tf.stack([unigram_embedding,bigram_embedding,trigram_embedding],-1)
+        stacked_grams = tf.stack([unigram_embedding,bigram_embedding,trigram_embedding],-1) ## [?,MAX_QUESTIO_LENGTH,EMBEDDING_DIMENSION,3]
 
         print("Concat shape {}".format(stacked_grams[0][1][:,0].get_shape()))
 
@@ -76,10 +76,6 @@ class vqa_phrase_level:
         bigram_norm  = tf.norm(bigram_vector)
         trigram_norm = tf.norm(trigram_vector)
 
-        norm_list = [unigram_norm,bigram_norm,trigram_norm]
-        vector_list = [unigram_vector,bigram_vector,trigram_vector]
-
-        print("Arg max tensor {}".format(tf.argmax(norm_list,0).get_shape()))
         if (unigram_norm == tf.maximum(unigram_norm,bigram_norm)):
             temp_max_norm = unigram_norm
             temp_max_vector = unigram_vector
