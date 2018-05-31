@@ -13,6 +13,8 @@ class Config(object):
 
         self.GLOVE_EMBEDDING_FILE='./datasets/glove.6B.100d.txt'
 
+        self.VOCABULARY_FILE = 'vocab_file.csv'
+
         ## CNN parameters
         self.TRAIN_CNN = False
         self.CNN='vgg16'
@@ -53,6 +55,11 @@ class Config(object):
         self.LOAD_MODEL = False
         self.MODEL_FILE_NAME= self.SAVE_DIR + '/step_722.npy'
         self.EPOCH_COUNT = 0
+
+
+        ## Testing Parameters
+        self.TEST_QUESTION_FILE = 'test_question_file.txt'
+        self.TEST_IMAGE_DIR = 'test_image_dir/'
 
 
         ## LSTM parameters

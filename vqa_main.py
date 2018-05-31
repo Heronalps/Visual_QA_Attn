@@ -106,11 +106,11 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         if config.PHASE == 'train':
-            # ## Create Vocabulary object
-            # vocabulary = Vocabulary()
-            # ## Build the vocabulary to get the indexes
-            # vocabulary.build(config.DATA_DIR+config.TRAIN_QUESTIONS_FILE)
-            # config.VOCAB_SIZE = vocabulary.num_words
+            ## Create Vocabulary object
+            vocabulary = Vocabulary(config)
+            ## Build the vocabulary to get the indexes
+            vocabulary.build(config.DATA_DIR+config.TRAIN_QUESTIONS_FILE)
+            vocabulary.save_file()
             # ## Create the data set
             # data_set = prepare_train_data(config,vocabulary)
             # # Create the model object
@@ -126,7 +126,13 @@ if __name__ == "__main__":
 
 
         elif config.PHASE == 'test':
-            
+            ## Create Vocabulary object
+            vocabulary = Vocabulary(config)
+            ## Load the vocabulary to get the indexes
+            vocabulary.load(config.DATA_DIR+config.VOCABULARY_FILE)
+            ## Create the data set from input question and image
+            prepare_test_data(config,vocabulary)
+
             pass
 
 
