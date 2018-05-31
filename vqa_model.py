@@ -5,6 +5,7 @@ functions for training,testing and evaluation of model
 """
 
 import tensorflow as tf
+import tqdm as tqdm
 
 from vqa_encoder import *
 from vqa_decoder import *

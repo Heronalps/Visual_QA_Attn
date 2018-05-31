@@ -68,6 +68,7 @@ class Config(object):
         self.LSTM_CELL_SIZE = 512
         self.LSTM_INPUT_SIZE = 32
         self.LSTM_OUTPUT_SIZE = 1024
+        self.LSTM_DROP_RATE = 0.5
 
 
 

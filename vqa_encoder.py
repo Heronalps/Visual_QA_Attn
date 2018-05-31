@@ -20,16 +20,18 @@ class vqa_encoder:
         ## LSTM code here
         self.lstm = vqa_lstm(self.config)
 
-    def build(self,images,questions,question_masks,embedding_matrix):
+    def build(self, images,questions, question_masks, embedding_matrix):
         ## Build the CNN model
         self.cnn.build(images)
         ## Build the word level
-        self.word_level.build(questions,question_masks,embedding_matrix)
+        self.word_level.build(questions, question_masks, embedding_matrix)
         ## Build the Phrase level
+
         self.phrase_level.build(self.word_level.word_embed)
         # ## Build the sentence level LSTM Model
         # self.lstm.build(self.phrase_level.phrase_level_features,question_masks)
         # ## Combine the model
+
         self.build_encoder()
 
 
