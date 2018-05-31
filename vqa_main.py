@@ -111,18 +111,18 @@ if __name__ == "__main__":
             ## Build the vocabulary to get the indexes
             vocabulary.build(config.DATA_DIR+config.TRAIN_QUESTIONS_FILE)
             vocabulary.save_file()
-            # ## Create the data set
-            # data_set = prepare_train_data(config,vocabulary)
-            # # Create the model object
+            ## Create the data set
+            data_set = prepare_train_data(config,vocabulary)
+            # Create the model object
             model = vqa_model(config)
             # Build the model
             model.build()
-            # sess.run(tf.global_variables_initializer())
-            #
-            # if (config.LOAD_MODEL):
-            #     model.load(sess,config.MODEL_FILE_NAME)
-            # # Train the data with the data set and embedding matrix
-            # model.train(sess,data_set)
+            sess.run(tf.global_variables_initializer())
+
+            if (config.LOAD_MODEL):
+                model.load(sess,config.MODEL_FILE_NAME)
+            # Train the data with the data set and embedding matrix
+            model.train(sess,data_set)
 
 
         elif config.PHASE == 'test':

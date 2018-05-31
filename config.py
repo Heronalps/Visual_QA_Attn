@@ -64,11 +64,11 @@ class Config(object):
 
         ## LSTM parameters
         self.LSTM_BATCH_SIZE = self.BATCH_SIZE
-        self.LSTM_STEPS = 25
-        self.LSTM_CELL_SIZE = 512
+        self.LSTM_STEPS = self.MAX_QUESTION_LENGTH
+        self.LSTM_CELL_SIZE = self.EMBEDDING_DIMENSION
         self.LSTM_INPUT_SIZE = 32
-        self.LSTM_OUTPUT_SIZE = 1024
-        self.LSTM_DROP_RATE = 0.5
+        self.LSTM_OUTPUT_SIZE = 512
+        self.LSTM_DROP_RATE = 0
 
 
 
