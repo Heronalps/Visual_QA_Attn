@@ -122,7 +122,8 @@ if __name__ == "__main__":
             # Build the model
             model.build()
             sess.run(tf.global_variables_initializer())
-
+            ## Load the Pre-trained CNN file
+            model.encoder.cnn.load_cnn(sess,config.CNN_PRETRAINED_FILE)
             if (config.LOAD_MODEL):
                 model.load(sess,config.MODEL_FILE_NAME)
             # Train the data with the data set and embedding matrix
@@ -130,20 +131,20 @@ if __name__ == "__main__":
 
         elif config.PHASE=="cnn_features":
 
-            ## Create Vocabulary object
-            vocabulary = Vocabulary(config)
-            ## Build the vocabulary to get the indexes
-            vocabulary.build(config.DATA_DIR + config.TRAIN_QUESTIONS_FILE)
+            # ## Create Vocabulary object
+            # vocabulary = Vocabulary(config)
+            # ## Build the vocabulary to get the indexes
+            # vocabulary.build(config.DATA_DIR + config.TRAIN_QUESTIONS_FILE)
 
             ## Create the data set
-            data_set = prepare_train_data(config, vocabulary)
+            data_set = prepare_cnn_data(config)
 
             model = vqa_model_static_cnn(config)
             model.build()
             sess.run(tf.global_variables_initializer())
+            ## Load Pre-trained CNN file
+            model.cnn.load_cnn(sess, config.CNN_PRETRAINED_FILE)
             model.train(sess,data_set)
-
-
 
 
         elif config.PHASE == 'test':

@@ -257,7 +257,7 @@ def prepare_train_data(config,vocabulary):
                       answer_masks_list,
                       answer_type_list,
                       config.BATCH_SIZE,
-                      True,
+                      config.PHASE,
                       True)
     print("Training Data prepared")
     return dataset
@@ -283,7 +283,7 @@ def prepare_test_data(config,vocabulary):
     question_masks[config.MAX_QUESTION_LENGTH - question_num_words:] = 1
 
     ## Get the Image Files, Currently we will have only one
-    files = os.listdir(config.DATA_DIR + config.TEST_IMAGE_DIR)
+    files = os.listdir(config.TEST_IMAGE_DIR)
     image_file_list = [os.path.join(config.TEST_IMAGE_DIR, f) for f in files
                    if f.lower().endswith('.jpg') or f.lower().endswith('.jpeg')]
 
@@ -299,7 +299,7 @@ def prepare_test_data(config,vocabulary):
                       question_id_list,
                       question_idxs_list,
                       question_masks_list,
-                      batch_size=1,is_train=False)
+                      batch_size=1,phase=config.PHASE)
     print("Testing Data prepared")
 
     ## Get the Top answers
@@ -307,5 +307,20 @@ def prepare_test_data(config,vocabulary):
         top_answers = pickle.load(fp)
 
     return dataset,top_answers
+
+
+def prepare_cnn_data(config):
+    files = os.listdir(config.TRAIN_IMAGE_DIR)
+    image_file_list = [os.path.join(config.TRAIN_IMAGE_DIR, f) for f in files
+                       if f.lower().endswith('.jpg') or f.lower().endswith('.jpeg')]
+
+    image_id_list = [f[:-4] for f in files]
+    dataset = DataSet(image_id_list,
+                      image_file_list,
+                      batch_size=config.BATCH_SIZE, phase=config.PHASE)
+    print("CNN Dataset prepared")
+
+    return dataset
+
 
 

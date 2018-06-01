@@ -6,16 +6,16 @@ class DataSet(object):
     def __init__(self,
                  image_id_list,
                  image_file_list,
-                 question_id_list,
-                 question_idxs_list,
-                 question_masks_list,
+                 question_id_list=None,
+                 question_idxs_list=None,
+                 question_masks_list=None,
                  question_type_list=None,
                  answer_id_list=None,
                  answer_idxs_list=None,
                  answer_masks_list=None,
                  answer_type_list=None,
                  batch_size=1,
-                 is_train=False,
+                 phase="train",
                  shuffle=False):
 
 
@@ -33,7 +33,7 @@ class DataSet(object):
         self.answer_type_list = np.array(answer_type_list)
 
         self.batch_size = batch_size
-        self.is_train = is_train
+        self.phase = phase
         self.shuffle = shuffle
         self.setup()
 
@@ -66,18 +66,25 @@ class DataSet(object):
 
         image_files = self.image_file_list[current_idxs]
         image_idxs = self.image_id_list[current_idxs]
-        question_idxs  = self.question_idxs_list[current_idxs]
-        question_masks = self.question_masks_list[current_idxs]
 
 
-        if self.is_train:
+        if self.phase == "train":
+            question_idxs = self.question_idxs_list[current_idxs]
+            question_masks = self.question_masks_list[current_idxs]
             answer_idxs = self.answer_idxs_list[current_idxs]
             answer_masks = self.answer_masks_list[current_idxs]
             self.current_idx += self.batch_size
             return image_files,image_idxs, question_idxs, question_masks, answer_idxs, answer_masks
-        else:
+        elif self.phase == "test":
+            question_idxs = self.question_idxs_list[current_idxs]
+            question_masks = self.question_masks_list[current_idxs]
             self.current_idx += self.batch_size
-            return image_files,question_idxs,question_masks
+            return image_files,image_idxs,question_idxs,question_masks
+        elif self.phase == "cnn_features":
+            self.current_idx += self.batch_size
+            return image_files, image_idxs
+
+
 
     def has_next_batch(self):
         """ Determine whether there is a batch left. """

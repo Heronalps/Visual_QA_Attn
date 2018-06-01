@@ -48,10 +48,10 @@ class vqa_model_static_cnn:
         self.fc_dict = {}
 
 
-        #for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
-        for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
+        for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
+        #for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
             batch = train_data.next_batch()
-            image_files, image_idxs, _, _, _, _ = batch
+            image_files, image_idxs = batch
             images = self.image_loader.load_images(image_files)
 
             feed_dict = {self.images:images}
@@ -61,11 +61,10 @@ class vqa_model_static_cnn:
             ## Save conv5_3 and fc2 into two dictionaries
             i = 0
             for idx in image_idxs:
-                if idx not in self.conv_dict:
-                    self.conv_dict[str(idx)] = self.conv5_3[i]
 
-                if idx not in self.fc_dict:
-                    self.fc_dict[str(idx)] = self.fc2[i]
+                self.conv_dict[str(idx)] = self.conv5_3[i]
+
+                self.fc_dict[str(idx)] = self.fc2[i]
 
                 i = i + 1
 

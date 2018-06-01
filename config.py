@@ -1,11 +1,11 @@
 class Config(object):
     def __init__(self):
         ## Questions and Annotataions JSON files
-        self.DATA_DIR ='./datasets/'
+        self.DATA_DIR ='../datasets/'
         self.TRAIN_QUESTIONS_FILE='v2_OpenEnded_mscoco_train2014_questions.json'
         self.TRAIN_ANNOTATIONS_FILE='v2_mscoco_train2014_annotations.json'
-        #self.TRAIN_IMAGE_DIR = self.DATA_DIR + '/train2014/'
-        self.TRAIN_IMAGE_DIR = '/Users/sainikhilmaram/Desktop/train2014'
+        self.TRAIN_IMAGE_DIR = self.DATA_DIR + '/train2014/'
+        #self.TRAIN_IMAGE_DIR = '/Users/sainikhilmaram/Desktop/train2014'
 
 
         self.VAL_QUESTIONS_FILE='v2_OpenEnded_mscoco_val2014_questions.json'
@@ -62,7 +62,7 @@ class Config(object):
 
         ## Testing Parameters
         self.TEST_QUESTION_FILE = 'test_question_file.txt'
-        self.TEST_IMAGE_DIR = 'test_image_dir/'
+        self.TEST_IMAGE_DIR = self.DATA_DIR+'test_image_dir/'
 
 
         ## LSTM parameters
