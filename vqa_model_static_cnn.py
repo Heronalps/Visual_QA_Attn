@@ -5,7 +5,6 @@ functions for training,testing and evaluation of model
 """
 
 #import tensorflow as tf
-import tqdm as tqdm
 import json
 
 from vqa_encoder import *
@@ -15,7 +14,7 @@ import copy
 
 class vqa_model_static_cnn:
     def __init__(self,config):
-        print("Creating the Model")
+        print("Creating the CNN Static Model")
         self.config = config
         self.cnn = vqa_cnn(self.config)
         self.image_loader = ImageLoader('./ilsvrc_2012_mean.npy',self.config)
@@ -29,6 +28,8 @@ class vqa_model_static_cnn:
             dtype=tf.float32,
             shape=[self.config.BATCH_SIZE] + self.config.IMAGE_SHAPE)
 
+        self.cnn.build(self.images)
+
         # self.build_model()
 
     def build_model(self):
@@ -36,7 +37,7 @@ class vqa_model_static_cnn:
         pass
 
     def train(self, sess, train_data):
-        print("Training the model")
+        print("Training the CNN model")
 
         epoch_count = self.config.EPOCH_COUNT
 
@@ -47,32 +48,31 @@ class vqa_model_static_cnn:
         self.fc_dict = {}
 
 
-        for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
+        #for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
+        for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
             batch = train_data.next_batch()
             image_files, image_idxs, _, _, _, _ = batch
             images = self.image_loader.load_images(image_files)
 
             feed_dict = {self.images:images}
 
-            conv5_3, fc2 = sess.run([self.cnn.conv5_3,self.cnn.fc2],feed_dict=feed_dict)
+            self.conv5_3, self.fc2 = sess.run([self.cnn.conv5_3,self.cnn.fc2],feed_dict=feed_dict)
 
             ## Save conv5_3 and fc2 into two dictionaries
             i = 0
             for idx in image_idxs:
                 if idx not in self.conv_dict:
-                    self.conv_dict[idx] = conv5_3[i]
+                    self.conv_dict[str(idx)] = self.conv5_3[i]
 
                 if idx not in self.fc_dict:
-                    self.fc_dict[idx] = self.fc_dict[i]
+                    self.fc_dict[str(idx)] = self.fc2[i]
 
                 i = i + 1
 
-        # Save both dictionaries as JSON
-        with open('conv_dict.json', 'w') as fp:
-            json.dump(self.conv_dict, fp)
 
-        with open('fc2_dict.json', 'w') as fp:
-            json.dump(self.fc_dict, fp)
+        np.save(self.config.DATA_DIR+ self.config.CONV_DATA_SET, self.conv_dict)
+        np.save(self.config.DATA_DIR+ self.config.FC_DATA_SET, self.fc_dict)
+
 
 
     def save(self,file_name):

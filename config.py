@@ -22,6 +22,8 @@ class Config(object):
         self.IMAGE_DIMENSION = [224,224]
         self.IMAGE_SHAPE = self.IMAGE_DIMENSION + [3]
         self.IMAGE_FEATURES = 14
+        self.CONV_DATA_SET = 'conv_dict.npy'
+        self.FC_DATA_SET = 'fc2_dict.npy'
 
         # self.CNN = 'resnet50'
         # self.CNN_PRETRAINED_FILE = './resnet50_no_fc.npy'
@@ -43,7 +45,7 @@ class Config(object):
 
 
         ## Model Parameters
-        self.PHASE = 'test'
+        self.PHASE = 'cnn_features'
         self.POINT_WISE_FEATURES = 1024
         self.INTERMEDIATE_DIMENSION = 30
 
