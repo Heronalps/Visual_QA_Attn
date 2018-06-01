@@ -20,7 +20,7 @@ class vqa_encoder:
         ## LSTM code here
         self.lstm = vqa_lstm(self.config)
 
-    def build(self, images,questions, question_masks, embedding_matrix):
+    def build(self, images, questions, question_masks, embedding_matrix):
         ## Build the CNN model
         self.cnn.build(images)
         ## Build the word level

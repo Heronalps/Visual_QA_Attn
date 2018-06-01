@@ -65,14 +65,16 @@ class DataSet(object):
                            list(np.random.choice(self.count, self.fake_count))
 
         image_files = self.image_file_list[current_idxs]
+        image_idxs = self.image_id_list[current_idxs]
         question_idxs  = self.question_idxs_list[current_idxs]
         question_masks = self.question_masks_list[current_idxs]
+
 
         if self.is_train:
             answer_idxs = self.answer_idxs_list[current_idxs]
             answer_masks = self.answer_masks_list[current_idxs]
             self.current_idx += self.batch_size
-            return image_files, question_idxs, question_masks, answer_idxs, answer_masks
+            return image_files,image_idxs, question_idxs, question_masks, answer_idxs, answer_masks
         else:
             self.current_idx += self.batch_size
             return image_files,question_idxs,question_masks

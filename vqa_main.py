@@ -5,12 +5,13 @@ from vqa_lstm import *
 from config import *
 from vqa_vocabulary import *
 import argparse
+import json
 import sys
 
 from vqa_cnn import *
 
 
-from vqa_model import *
+from vqa_model_static_cnn import *
 from vqa_preprocessing import *
 
 def parse_args(args):
@@ -114,7 +115,17 @@ if __name__ == "__main__":
             # ## Create the data set
             # data_set = prepare_train_data(config,vocabulary)
             # # Create the model object
-            model = vqa_model(config)
+            model = vqa_model_static_cnn(config)
+
+            # Load two saved dictionaries
+
+            with open('conv_dict.json', 'r') as fp:
+                conv_dict = json.load(fp)
+
+            with open('fc2_dict.json', 'r') as fp:
+                fc2_dict = json.load(fp)
+
+
             # Build the model
             model.build()
             # sess.run(tf.global_variables_initializer())

@@ -77,7 +77,7 @@ class vqa_model:
                              self.decoder.answers:answer_idxs,
                              self.decoder.answer_masks:answer_masks}
 
-                _,predictions_correct = sess.run([self.decoder.optimizer,self.decoder.predictions_correct],feed_dict=feed_dict)
+                _, predictions_correct = sess.run([self.decoder.optimizer,self.decoder.predictions_correct],feed_dict=feed_dict)
 
                 # _ = sess.run(self.encoder.v_attend_phrase,
                 #                               feed_dict=feed_dict)
