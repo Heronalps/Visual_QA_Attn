@@ -60,16 +60,17 @@ def tokenizing_sentence(line):
 
 
 class Vocabulary(object):
-    def __init__(self):
+    def __init__(self,config):
         print("Created Vocabulary Object")
         self.missingWords = 0
         nltk.download('stopwords')
         nltk.download('punkt')
+        self.config  = config
+        self.words = []
+        self.word2idx = {}
 
     def build(self,questions_json_file):
         print("Building the indexes")
-        self.words = []
-        self.word2idx = {}
         word_counts = {}
         train_ques = json.load(open(questions_json_file, 'r'))
         train_size = len(train_ques['questions'])
@@ -84,6 +85,7 @@ class Vocabulary(object):
                              reverse=True)
 
         self.num_words = len(word_counts)
+        self.config.VOCAB_SIZE = self.num_words
 
         for idx in range(self.num_words):
             word, word_count = word_counts[idx]
@@ -99,11 +101,10 @@ class Vocabulary(object):
             in the vocabulary. """
         words = tokenizing_sentence(sentence.lower())
         try:
-
             word_idxs = [int(self.word2idx[w]) for w in words]
         except:
-            self.missingWords = self.missingWords + 1
-            word_idxs = []
+            print("Words not in Vocabulary... Please change the question")
+            exit()
         return word_idxs
 
     def get_sentence(self, idxs):
@@ -117,5 +118,21 @@ class Vocabulary(object):
                             and w not in string.punctuation \
                             else w for w in words]).strip()
         return sentence
+
+    def save_file(self):
+        """ Save the vocabulary to a file. """
+        print("Saving the Vocabulary File ...")
+        data = pd.DataFrame({'word': self.words,
+                             'index': list(range(self.num_words))
+                             })
+        data.to_csv(self.config.DATA_DIR + self.config.VOCABULARY_FILE)
+
+    def load(self, save_file):
+        """ Load the vocabulary from a file. """
+        assert os.path.exists(save_file)
+        data = pd.read_csv(save_file)
+        self.words = data['word'].values
+        self.word2idx = {self.words[i]:i for i in range(self.config.VOCAB_SIZE)}
+
 
 

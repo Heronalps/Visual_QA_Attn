@@ -12,8 +12,8 @@ class vqa_lstm(object):
         self.cell_size = config.LSTM_CELL_SIZE
         self.batch_size = config.LSTM_BATCH_SIZE
         self.drop_rate = config.LSTM_DROP_RATE
-        self.lstm_layer = 2
-        self.dim = self.lstm_layer * 1024
+        self.lstm_layer = 1
+        self.dim = self.lstm_layer * 512
 
     # def build(self, question_idxs, questions_mask, embedding_matrix):
     #
@@ -39,7 +39,7 @@ class vqa_lstm(object):
 
     ## Return self.lstm_features
 
-    def build(self, question_idxs, questions_mask, embedding_matrix, sentences):
+    def build(self, sentences):
         """ Build the RNN. """
         print("Building the RNN...")
 
@@ -74,7 +74,7 @@ class vqa_lstm(object):
         for idx in range(self.n_steps):
 
             # Apply the LSTM
-            with tf.variable_scope("lstm"):
+            with tf.variable_scope("lstm",reuse = tf.AUTO_REUSE):
                 current_input = sentences[:, idx]
                 output, state = lstm_cell_1(current_input, last_state)
                 memory, hidden_state = state
@@ -83,8 +83,8 @@ class vqa_lstm(object):
 
             lstm_feature_arr.append(hidden_state)
 
-            tf.get_variable_scope().reuse_variables()
 
         self.lstm_features = tf.stack(lstm_feature_arr, axis=1)
+
 
         print("RNN built.")

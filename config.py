@@ -13,6 +13,8 @@ class Config(object):
 
         self.GLOVE_EMBEDDING_FILE='./datasets/glove.6B.100d.txt'
 
+        self.VOCABULARY_FILE = 'vocab_file.csv'
+
         ## CNN parameters
         self.TRAIN_CNN = False
         self.CNN='vgg16'
@@ -55,13 +57,18 @@ class Config(object):
         self.EPOCH_COUNT = 0
 
 
+        ## Testing Parameters
+        self.TEST_QUESTION_FILE = 'test_question_file.txt'
+        self.TEST_IMAGE_DIR = 'test_image_dir/'
+
+
         ## LSTM parameters
         self.LSTM_BATCH_SIZE = self.BATCH_SIZE
-        self.LSTM_STEPS = 25
-        self.LSTM_CELL_SIZE = 512
+        self.LSTM_STEPS = self.MAX_QUESTION_LENGTH
+        self.LSTM_CELL_SIZE = self.EMBEDDING_DIMENSION
         self.LSTM_INPUT_SIZE = 32
-        self.LSTM_OUTPUT_SIZE = 1024
-        self.LSTM_DROP_RATE = 0.5
+        self.LSTM_OUTPUT_SIZE = 512
+        self.LSTM_DROP_RATE = 0
 
 
 

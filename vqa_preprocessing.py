@@ -250,3 +250,10 @@ def prepare_train_data(config,vocabulary):
                       True)
     print("Training Data prepared")
     return dataset
+
+
+def prepare_test_data(config,vocabulary):
+    quest_file = config.DATA_DIR + config.TEST_QUESTION_FILE
+    qF = open(quest_file,'r')
+    question = qF.readline()
+    print(question)

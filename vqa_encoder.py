@@ -14,11 +14,10 @@ from vqa_lstm import *
 class vqa_encoder:
     def __init__(self,config):
         self.config = config
-        self.cnn = vqa_cnn(self.config)
+        self.cnn = vqa_cnn(config)
         self.word_level = vqa_word_level(config)
         self.phrase_level = vqa_phrase_level(config)
-        ## LSTM code here
-        self.lstm = vqa_lstm(self.config)
+        self.sentence_level = vqa_lstm(config)
 
     def build(self, images, questions, question_masks, embedding_matrix):
         ## Build the CNN model
@@ -29,7 +28,7 @@ class vqa_encoder:
 
         self.phrase_level.build(self.word_level.word_embed)
         # ## Build the sentence level LSTM Model
-        # self.lstm.build(self.phrase_level.phrase_level_features,question_masks)
+        self.sentence_level.build(self.phrase_level.phrase_level_features)
         # ## Combine the model
 
         self.build_encoder()
@@ -60,7 +59,8 @@ class vqa_encoder:
 
         self.v_attend_phrase, self.q_attend_phrase = self.parallel_co_attention(self.V, self.Q_phrase, "phrase")
 
-        self.Q_sentence = tf.transpose(self.phrase_level.phrase_level_features,[0,2,1])
+        print("Sentence Level feature size {}".format(self.sentence_level.lstm_features.get_shape()))
+        self.Q_sentence = tf.transpose(self.sentence_level.lstm_features,[0,2,1])
 
         self.v_attend_sentence, self.q_attend_sentence = self.parallel_co_attention(self.V,self.Q_sentence,"sentence")
 

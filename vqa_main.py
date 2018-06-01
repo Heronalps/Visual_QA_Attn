@@ -107,6 +107,7 @@ if __name__ == "__main__":
 
     with tf.Session() as sess:
         if config.PHASE == 'train':
+
             # ## Create Vocabulary object
             # vocabulary = Vocabulary()
             # ## Build the vocabulary to get the indexes
@@ -127,7 +128,7 @@ if __name__ == "__main__":
 
 
             # Build the model
-            model.build()
+            # model.build()
             # sess.run(tf.global_variables_initializer())
             #
             # if (config.LOAD_MODEL):
@@ -137,7 +138,13 @@ if __name__ == "__main__":
 
 
         elif config.PHASE == 'test':
-            
+            ## Create Vocabulary object
+            vocabulary = Vocabulary(config)
+            ## Load the vocabulary to get the indexes
+            vocabulary.load(config.DATA_DIR+config.VOCABULARY_FILE)
+            ## Create the data set from input question and image
+            prepare_test_data(config,vocabulary)
+
             pass
 
 
