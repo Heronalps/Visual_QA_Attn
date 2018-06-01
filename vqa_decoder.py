@@ -81,8 +81,9 @@ class vqa_decoder:
             self.optimizer = tf.train.AdamOptimizer(config.INITIAL_LEARNING_RATE).minimize(cross_entropy_loss)
 
         self.predictions = tf.argmax(logits, 1,output_type=tf.int32)
-        ## Number of correct predictions in each run
-        self.predictions_correct = tf.reduce_sum(tf.cast(tf.equal(self.predictions, self.answers[:, 0]),tf.float32))
+        if config.PHASE == 'train':
+            ## Number of correct predictions in each run
+            self.predictions_correct = tf.reduce_sum(tf.cast(tf.equal(self.predictions, self.answers[:, 0]),tf.float32))
 
 
         print(" Decoder model built")

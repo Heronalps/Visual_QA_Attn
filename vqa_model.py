@@ -58,16 +58,14 @@ class vqa_model:
 
     def train(self,sess,train_data):
         print("Training the model")
-
         epoch_count = self.config.EPOCH_COUNT
-
 
         for _ in tqdm(list(range(self.config.NUM_EPOCHS)), desc='epoch'):
             total_predictions_correct = 0
             for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
             #for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
                 batch = train_data.next_batch()
-                image_files, question_idxs, question_masks, answer_idxs, answer_masks = batch
+                image_files, image_idxs, question_idxs, question_masks, answer_idxs, answer_masks = batch
                 images = self.image_loader.load_images(image_files)
 
                 feed_dict = {self.images:images,
@@ -104,10 +102,28 @@ class vqa_model:
             f.close()
             train_data.reset()
 
+    def test(self,sess,test_data,top_answers):
+
+        batch = test_data.batch()
+        image_files, question_idxs, question_masks = batch
+        images = self.image_loader.load_images(image_files)
+
+        feed_dict = {self.images: images,
+                     self.questions: question_idxs,
+                     self.question_masks: question_masks
+                     }
+
+        predictions = sess.run(self.decoder.predictions,feed_dict = feed_dict)
+        print("Answer is {}".format(top_answers[predictions]))
+
+
+
+
 
 
     def save(self,file_name):
         """ Save the model. """
+        print(tf.global_variables())
         config = self.config
         data = {v.name: v.eval() for v in tf.global_variables()}
         save_path = os.path.join(config.SAVE_DIR, file_name)

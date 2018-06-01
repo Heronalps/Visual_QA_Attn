@@ -129,6 +129,7 @@ class Vocabulary(object):
 
     def load(self, save_file):
         """ Load the vocabulary from a file. """
+        print("Loading the Vocabulary File .....")
         assert os.path.exists(save_file)
         data = pd.read_csv(save_file)
         self.words = data['word'].values

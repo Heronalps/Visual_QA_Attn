@@ -126,23 +126,19 @@ if __name__ == "__main__":
 
 
         elif config.PHASE == 'test':
+            config.set_batch_size(1)
+            print("Config.LSTM Size : {}".format(config.LSTM_BATCH_SIZE))
             ## Create Vocabulary object
             vocabulary = Vocabulary(config)
             ## Load the vocabulary to get the indexes
             vocabulary.load(config.DATA_DIR+config.VOCABULARY_FILE)
             ## Create the data set from input question and image
-            prepare_test_data(config,vocabulary)
+            data_set,top_answers = prepare_test_data(config,vocabulary)
+            ## Create the model
+            model = vqa_model(config)
+            ## Build the model
+            model.build()
+            sess.run(tf.global_variables_initializer())
 
-            pass
-
-
-
-
-
-
-
-
-
-
-
-
+            model.load(sess, config.MODEL_FILE_NAME)
+            model.test(sess,data_set,top_answers)

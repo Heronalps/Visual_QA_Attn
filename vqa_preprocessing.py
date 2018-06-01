@@ -17,6 +17,7 @@ from vqa_vocabulary import Vocabulary
 from tqdm import tqdm
 from vqa_dataset import DataSet
 import cv2
+import pickle
 
 class ImageLoader(object):
     def __init__(self, mean_file,config):
@@ -120,6 +121,11 @@ def get_top_answers(config):
     for i in range(config.TOP_ANSWERS):
         top_answers.append(count_words[i][1])
 
+    ## Save the top answers
+    print("Saving the top answers ....")
+    with open(config.DATA_DIR + config.TOP_ANSWERS_FILE, "wb") as fp:  # Pickling
+        pickle.dump(top_answers, fp)
+
     return top_answers
 
 
@@ -165,8 +171,13 @@ def prepare_train_data(config,vocabulary):
                 question_idxs = np.zeros(config.MAX_QUESTION_LENGTH,dtype = np.int32)
                 question_masks = np.zeros(config.MAX_QUESTION_LENGTH)
 
-                question_idxs[:question_num_words] = np.array(question_idxs_)
-                question_masks[:question_num_words] = 1
+                # ## Right padding
+                # question_idxs[:question_num_words] = np.array(question_idxs_)
+                # question_masks[:question_num_words] = 1
+
+                ## Left Padding
+                question_idxs[config.MAX_QUESTION_LENGTH - question_num_words:] = np.array(question_idxs_)
+                question_masks[config.MAX_QUESTION_LENGTH - question_num_words:] = 1
 
 
                 ## Convert the answer into answer indexes
@@ -253,7 +264,48 @@ def prepare_train_data(config,vocabulary):
 
 
 def prepare_test_data(config,vocabulary):
+
+    question_id_list = []; question_idxs_list = []; question_masks_list = []
+
+
     quest_file = config.DATA_DIR + config.TEST_QUESTION_FILE
     qF = open(quest_file,'r')
     question = qF.readline()
     print(question)
+    question_idxs_ = vocabulary.process_sentence(question)
+    question_num_words = len(question_idxs_)
+
+    question_idxs = np.zeros(config.MAX_QUESTION_LENGTH, dtype=np.int32)
+    question_masks = np.zeros(config.MAX_QUESTION_LENGTH)
+
+    ## Left Padding
+    question_idxs[config.MAX_QUESTION_LENGTH - question_num_words:] = np.array(question_idxs_)
+    question_masks[config.MAX_QUESTION_LENGTH - question_num_words:] = 1
+
+    ## Get the Image Files, Currently we will have only one
+    files = os.listdir(config.DATA_DIR + config.TEST_IMAGE_DIR)
+    image_file_list = [os.path.join(config.TEST_IMAGE_DIR, f) for f in files
+                   if f.lower().endswith('.jpg') or f.lower().endswith('.jpeg')]
+
+    image_id_list = list(range(len(image_file_list)))
+
+
+    question_id_list.append(0)
+    question_idxs_list.append(question_idxs)
+    question_masks_list.append(question_masks)
+
+    dataset = DataSet(image_id_list,
+                      image_file_list,
+                      question_id_list,
+                      question_idxs_list,
+                      question_masks_list,
+                      batch_size=1,is_train=False)
+    print("Testing Data prepared")
+
+    ## Get the Top answers
+    with open(config.DATA_DIR + config.TOP_ANSWERS_FILE, "rb") as fp:  # Unpickling
+        top_answers = pickle.load(fp)
+
+    return dataset,top_answers
+
+

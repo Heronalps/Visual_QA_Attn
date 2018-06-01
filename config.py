@@ -36,13 +36,14 @@ class Config(object):
         ## Decoder Parameters
         self.TOP_ANSWERS = 1000
         self.OUTPUT_SIZE = self.TOP_ANSWERS
+        self.TOP_ANSWERS_FILE = 'top_answers.txt'
 
         self.ONLY_TOP_ANSWERS = True ## If we are considering only questions with top answers in our model
         self.MAX_ANSWER_LENGTH = 1
 
 
         ## Model Parameters
-        self.PHASE = 'train'
+        self.PHASE = 'test'
         self.POINT_WISE_FEATURES = 1024
         self.INTERMEDIATE_DIMENSION = 30
 
@@ -81,4 +82,8 @@ class Config(object):
         self.fc_drop_rate = 0.5
         self.lstm_drop_rate = 0.3
         self.attention_loss_factor = 0.01
+
+    def set_batch_size(self,batch_size):
+        self.BATCH_SIZE = batch_size
+        self.LSTM_BATCH_SIZE = batch_size
 
