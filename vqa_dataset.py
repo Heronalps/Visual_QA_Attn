@@ -69,6 +69,7 @@ class DataSet(object):
         question_idxs  = self.question_idxs_list[current_idxs]
         question_masks = self.question_masks_list[current_idxs]
 
+
         if self.is_train:
             answer_idxs = self.answer_idxs_list[current_idxs]
             answer_masks = self.answer_masks_list[current_idxs]

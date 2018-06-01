@@ -19,7 +19,7 @@ class vqa_encoder:
         self.phrase_level = vqa_phrase_level(config)
         self.sentence_level = vqa_lstm(config)
 
-    def build(self, images,questions, question_masks, embedding_matrix):
+    def build(self, images, questions, question_masks, embedding_matrix):
         ## Build the CNN model
         self.cnn.build(images)
         ## Build the word level
