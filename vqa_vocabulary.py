@@ -100,11 +100,7 @@ class Vocabulary(object):
         """ Tokenize a sentence, and translate each token into its index
             in the vocabulary. """
         words = tokenizing_sentence(sentence.lower())
-        try:
-            word_idxs = [int(self.word2idx[w]) for w in words]
-        except:
-            print("Words not in Vocabulary... Please change the question")
-            exit()
+        word_idxs = [int(self.word2idx[w]) for w in words]
         return word_idxs
 
     def get_sentence(self, idxs):

@@ -19,9 +19,14 @@ class vqa_encoder:
         self.phrase_level = vqa_phrase_level(config)
         self.sentence_level = vqa_lstm(config)
 
-    def build(self, images, questions, question_masks, embedding_matrix):
-        ## Build the CNN model
-        self.cnn.build(images)
+    # def build(self, images, questions, question_masks, embedding_matrix):
+    def build(self, image_features, questions, question_masks, embedding_matrix):
+        # ## Build the CNN model
+        if self.config.PHASE == "test":
+            images = image_features
+            self.cnn.build(images)
+
+        self.image_features = image_features
         ## Build the word level
         self.word_level.build(questions, question_masks, embedding_matrix)
         ## Build the Phrase level
@@ -37,15 +42,20 @@ class vqa_encoder:
     def build_encoder(self):
 
         config = self.config
-        config.IMAGE_FEATURES = self.cnn.num_ctx
+        # config.IMAGE_FEATURES = self.cnn.num_ctx
 
         ## d = 512, N = 14, T = 25, k = 25
         ## Building Word Level features
 
-        print("CNN feature size {}".format(self.cnn.conv_feats.get_shape())) ## [BATCH_SIZE,14,512]
+        if self.config.PHASE == "test":
+            print("CNN feature size {}".format(self.cnn.conv_feats.get_shape())) ## [BATCH_SIZE,14,512]
+            self.V = tf.transpose(self.cnn.conv_feats, [0, 2, 1]) ##[BATCH_SIZE,512,14] (V) [?,d,N]
+            print("V_word shape : {}".format(self.V.get_shape()))
+        else:
+            print("CNN feature size {}".format(self.image_features.get_shape()))  ## [BATCH_SIZE,14,512]
+            self.V = tf.transpose(self.image_features, [0, 2, 1])  ##[BATCH_SIZE,512,14] (V) [?,d,N]
+            print("V_word shape : {}".format(self.V.get_shape()))
 
-        self.V = tf.transpose(self.cnn.conv_feats, [0, 2, 1]) ##[BATCH_SIZE,512,14] (V) [?,d,N]
-        print("V_word shape : {}".format(self.V.get_shape()))
 
         print("Word Level feature size {}".format(self.word_level.word_embed.get_shape())) ## [BATCH_SIZE,25,512]
 
@@ -63,7 +73,6 @@ class vqa_encoder:
         self.Q_sentence = tf.transpose(self.sentence_level.lstm_features,[0,2,1])
 
         self.v_attend_sentence, self.q_attend_sentence = self.parallel_co_attention(self.V,self.Q_sentence,"sentence")
-
 
 
 

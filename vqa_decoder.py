@@ -70,17 +70,19 @@ class vqa_decoder:
             fcb = tf.get_variable(initializer=tf.constant(1.0, shape=[self.config.OUTPUT_SIZE], dtype=tf.float32),
                                trainable=True, name='fc_b')
             fcl = tf.nn.bias_add(tf.matmul(attend_vector_sentence, fcw), fcb)
-            logits = tf.nn.relu(fcl)
+            self.logits = tf.nn.relu(fcl)
 
         if config.PHASE == 'train':
             # Compute the loss for this step, if necessary
             cross_entropy_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
                 labels=self.answers[:,0],  ##[:,0] because answers is array of arrays
-                logits=logits)
+                logits=self.logits)
 
             self.optimizer = tf.train.AdamOptimizer(config.INITIAL_LEARNING_RATE).minimize(cross_entropy_loss)
 
-        self.predictions = tf.argmax(logits, 1,output_type=tf.int32)
+
+        self.predictions = tf.argmax(self.logits, 1,output_type=tf.int32)
+        self.softmax_logits = tf.nn.softmax(self.logits)
         if config.PHASE == 'train':
             ## Number of correct predictions in each run
             self.predictions_correct = tf.reduce_sum(tf.cast(tf.equal(self.predictions, self.answers[:, 0]),tf.float32))
