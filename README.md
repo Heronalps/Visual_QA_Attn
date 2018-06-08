@@ -18,8 +18,6 @@ The image and question first needs to be embed(encoded) into a common vector spa
 
 ### 3.1 Encoder
 
-
-
 The encoder part consists of image and question encoding.
 
 #### 3.1.1 Image Encoding
