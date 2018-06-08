@@ -36,7 +36,7 @@ class vqa_model_static_cnn:
         ## Assign variables that needs to be passed to variables from encoder and decoder
         pass
 
-    def train(self, sess, train_data):
+    def train(self, sess, train_data, fc_file_name, conv_file_name):
         print("Training the CNN model")
 
         epoch_count = self.config.EPOCH_COUNT
@@ -47,30 +47,27 @@ class vqa_model_static_cnn:
         # Fully-connected feature map dictionary for VQA model without attention
         self.fc_dict = {}
 
-
         for _ in tqdm(list(range(train_data.num_batches)), desc='batch'):
-        #for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
+            # for _ in tqdm(list(range(self.config.NUM_BATCHES)), desc='batch'):
             batch = train_data.next_batch()
             image_files, image_idxs = batch
             images = self.image_loader.load_images(image_files)
 
-            feed_dict = {self.images:images}
+            feed_dict = {self.images: images}
 
-            self.conv5_3, self.fc2 = sess.run([self.cnn.conv5_3,self.cnn.fc2],feed_dict=feed_dict)
+            self.conv_feats, self.fc2 = sess.run([self.cnn.conv_feats, self.cnn.fc2], feed_dict=feed_dict)
 
             ## Save conv5_3 and fc2 into two dictionaries
             i = 0
             for idx in image_idxs:
-
-                self.conv_dict[str(idx)] = self.conv5_3[i]
+                self.conv_dict[str(idx)] = self.conv_feats[i]
 
                 self.fc_dict[str(idx)] = self.fc2[i]
 
                 i = i + 1
 
-
-        np.save(self.config.DATA_DIR+ self.config.CONV_DATA_SET, self.conv_dict)
-        np.save(self.config.DATA_DIR+ self.config.FC_DATA_SET, self.fc_dict)
+        np.save(conv_file_name, self.conv_dict)
+        np.save(fc_file_name, self.fc_dict)
 
 
 

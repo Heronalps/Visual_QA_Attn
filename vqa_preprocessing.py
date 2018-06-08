@@ -73,9 +73,6 @@ def loadGlove(embeddingFile):
     print(len(vocab))
     return vocab, embedding,dictionary,reverseDictionary
 
-# val_annot = json.load(open(config.DATA_DIR+config.VALIDATION_ANNOTATION_FILE, 'r'))
-#
-# val_ques = json.load(open(config.DATA_DIR+config.VALIDATION_QUESTION_FILE, 'r'))
 
 def get_best_confidence_answer(answer_list):
     """Gives the best confidence answer from answer list"""
@@ -263,6 +260,149 @@ def prepare_train_data(config,vocabulary):
     return dataset
 
 
+
+def prepare_eval_data(config,vocabulary):
+    """ Prepare the data for training the model. """
+    print("Preparing Evaluation Data....")
+    ## Get the Top answers
+    with open(config.DATA_DIR + config.TOP_ANSWERS_FILE, "rb") as fp:  # Unpickling
+        top_answers = pickle.load(fp)
+
+    answer_to_idx = {ans: idx for idx, ans in enumerate(top_answers)}
+    idx_to_answer = {idx: ans for idx, ans in enumerate(top_answers)}
+
+    eval_annot = json.load(open(config.DATA_DIR + config.EVAL_ANNOTATIONS_FILE, 'r'))
+    eval_ques = json.load(open(config.DATA_DIR + config.EVAL_QUESTIONS_FILE, 'r'))
+
+    eval_size = len(eval_annot['annotations'])
+
+
+    ## Lists that need to be passed to DataSet object
+    image_id_list = [] ; image_file_list = []
+    question_id_list = [] ; question_idxs_list = [] ; question_masks_list = [] ; question_type_list = []
+    answer_id_list = []  ; answer_idxs_list = [] ; answer_masks_list = [] ; answer_type_list = []
+
+    missing_questions = 0
+
+    for i in tqdm(list(range(eval_size)), desc='evaluation data'):
+        ## Attributes required from questions
+        question_id = eval_ques['questions'][i]['question_id']
+        image_id    = eval_ques['questions'][i]['image_id']
+        question    = eval_ques['questions'][i]['question']
+        image_file  = os.path.join(config.EVAL_IMAGE_DIR,"COCO_val2014_000000"+format(image_id,'06d')+".jpg")
+
+        ## Attributes required from annotations
+        question_type = eval_annot['annotations'][i]['question_type']
+        answer_type   = eval_annot['annotations'][i]['answer_type']
+        answer,answer_id = get_best_confidence_answer(eval_annot['annotations'][i]['answers'])
+
+        ## config.ONLY_TOP_ANSWERS, then the answer_idxs will contain the answer index in the top answers
+        if config.ONLY_TOP_ANSWERS:
+            if answer in top_answers:
+                ## Convert question into question indexes
+                try:
+                    question_idxs_ = vocabulary.process_sentence(question)
+                except:
+                    missing_questions +=1
+                    continue
+                question_num_words = len(question_idxs_)
+
+                question_idxs = np.zeros(config.MAX_QUESTION_LENGTH,dtype = np.int32)
+                question_masks = np.zeros(config.MAX_QUESTION_LENGTH)
+
+                # ## Right padding
+                # question_idxs[:question_num_words] = np.array(question_idxs_)
+                # question_masks[:question_num_words] = 1
+
+                ## Left Padding
+                question_idxs[config.MAX_QUESTION_LENGTH - question_num_words:] = np.array(question_idxs_)
+                question_masks[config.MAX_QUESTION_LENGTH - question_num_words:] = 1
+
+
+                ## Convert the answer into answer indexes
+                answer_idxs_ = answer_to_idx[answer]
+                answer_num_words = 1
+
+                answer_idxs = np.zeros(config.MAX_ANSWER_LENGTH, dtype=np.int32)
+                answer_masks = np.zeros(config.MAX_ANSWER_LENGTH)
+
+                answer_idxs[:answer_num_words] = np.array(answer_idxs_)
+                answer_masks[:answer_num_words] = 1
+
+                ## Place the elements into their list
+                image_id_list.append(image_id) ; image_file_list.append(image_file)
+
+                question_id_list.append(question_id) ; question_idxs_list.append(question_idxs)
+                question_masks_list.append(question_masks) ; question_type_list.append(question_type)
+
+                answer_id_list.append(answer_id);  answer_idxs_list.append(answer_idxs)
+                answer_masks_list.append(answer_masks); answer_type_list.append(answer_type)
+
+        else:
+            ## This is used in future if we are planning to have decoder as an LSTM unit
+            ## Convert question into question indexes
+            question_idxs_ = vocabulary.process_sentence(question)
+            question_num_words = len(question_idxs_)
+
+            question_idxs = np.zeros(config.MAX_QUESTION_LENGTH, dtype=np.int32)
+            question_masks = np.zeros(config.MAX_QUESTION_LENGTH)
+
+            question_idxs[:question_num_words] = np.array(question_idxs_)
+            question_masks[:question_num_words] = 1
+
+            ## Convert the answer into answer indexes
+            answer_idxs_ = vocabulary.process_sentence(answer)
+            answer_num_words = len(answer_idxs_)
+
+            answer_idxs = np.zeros(config.MAX_ANSWER_LENGTH, dtype=np.int32)
+            answer_masks = np.zeros(config.MAX_ANSWER_LENGTH)
+
+            answer_idxs[:answer_num_words] = np.array(answer_idxs_)
+            answer_masks[:answer_num_words] = 1
+
+            ## Place the elements into their list
+            image_id_list.append(image_id)
+            image_file_list.append(image_file)
+
+            question_id_list.append(question_id); question_idxs_list.append(question_idxs)
+            question_masks_list.append(question_masks); question_type_list.append(question_type)
+
+            answer_id_list.append(answer_id); answer_idxs_list.append(answer_idxs)
+            answer_masks_list.append(answer_masks); answer_type_list.append(answer_type)
+
+
+    image_id_list = np.array(image_id_list) ; image_file_list = np.array(image_file_list)
+
+    question_id_list = np.array(question_id_list) ;  question_idxs_list = np.array(question_idxs_list)
+    question_masks_list = np.array(question_masks_list) ; question_type_list = np.array(question_type_list)
+
+    answer_id_list = np.array(answer_id_list) ; answer_idxs_list = np.array(answer_idxs_list)
+    answer_masks_list = np.array(answer_masks_list) ; answer_type_list = np.array(answer_type_list)
+
+    #print(image_id_list,question_id_list,question_idxs_list,answer_idxs_list)
+
+
+    print("Number of Evaluation Questions = %d" %(eval_size))
+    print("Missing Questions : ", missing_questions)
+    print("Building the dataset...")
+    dataset = DataSet(image_id_list,
+                      image_file_list,
+                      question_id_list,
+                      question_idxs_list,
+                      question_masks_list,
+                      question_type_list,
+                      answer_id_list,
+                      answer_idxs_list,
+                      answer_masks_list,
+                      answer_type_list,
+                      config.BATCH_SIZE,
+                      config.PHASE,
+                      True)
+    print("Evaluation Data prepared")
+    return dataset
+
+
+
 def prepare_test_data(config,vocabulary):
 
     question_id_list = []; question_idxs_list = []; question_masks_list = []
@@ -272,7 +412,11 @@ def prepare_test_data(config,vocabulary):
     qF = open(quest_file,'r')
     question = qF.readline()
     print(question)
-    question_idxs_ = vocabulary.process_sentence(question)
+    try:
+        question_idxs_ = vocabulary.process_sentence(question)
+    except:
+        print("Words not in Vocabulary... Please change the question")
+        exit()
     question_num_words = len(question_idxs_)
 
     question_idxs = np.zeros(config.MAX_QUESTION_LENGTH, dtype=np.int32)
@@ -323,4 +467,46 @@ def prepare_cnn_data(config):
     return dataset
 
 
+class image_feature_loader:
+    def __init__(self,config):
+        self.config = config
 
+    def build(self):
+        ## Loads the numpy file
+        self.image_features = np.load(self.config.DATA_DIR+self.config.CONV_DATA_SET_TRAIN)
+
+
+    def load_image(self,image_id):
+        return self.image_features[()][image_id]
+
+    def load_images(self,image_ids):
+        images = []
+        for image_id in image_ids:
+            ## Formating the image id because this is the id used while storing it in numpy
+            image_id = "COCO_train2014_000000"+format(image_id,'06d')
+            images.append(self.load_image(image_id))
+        images = np.array(images,np.float32)
+        return images
+
+
+
+class image_feature_loader_eval:
+    def __init__(self,config):
+        self.config = config
+
+    def build(self):
+        ## Loads the numpy file
+        self.image_features = np.load(self.config.DATA_DIR+self.config.CONV_DATA_SET_EVAL)
+
+
+    def load_image(self,image_id):
+        return self.image_features[()][image_id]
+
+    def load_images(self,image_ids):
+        images = []
+        for image_id in image_ids:
+            ## Formating the image id because this is the id used while storing it in numpy
+            image_id = "COCO_val2014_000000"+format(image_id,'06d')
+            images.append(self.load_image(image_id))
+        images = np.array(images,np.float32)
+        return images
